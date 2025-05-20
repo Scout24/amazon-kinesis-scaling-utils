@@ -145,23 +145,27 @@ public class StreamScalingUtils {
 
 		KinesisOperation describe = new KinesisOperation() {
 			public Object run(KinesisClient client) {
-				ListShardsRequest.Builder builder = ListShardsRequest.builder().streamName(streamName);
 				boolean hasMoreResults = true;
 				List<Shard> shards = new ArrayList<>();
+				String nextToken = null;
 
 				while (hasMoreResults) {
-					if (shardIdStart != null) {
-						builder.exclusiveStartShardId(shardIdStart);
+					ListShardsRequest.Builder builder = ListShardsRequest.builder().maxResults(1000);
+
+					if (nextToken == null) {
+						builder.streamName(streamName);
+						if (shardIdStart != null) {
+							builder.exclusiveStartShardId(shardIdStart);
+						}
+					} else {
+						builder.nextToken(nextToken);
 					}
+
 					ListShardsResponse result = client.listShards(builder.build());
 					shards.addAll(result.shards());
 
-					if (result.nextToken() == null) {
-						hasMoreResults = false;
-					} else {
-						builder.nextToken(result.nextToken());
-					}
-
+					nextToken = result.nextToken();
+					hasMoreResults = nextToken != null;
 				}
 				return shards;
 			}
