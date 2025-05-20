@@ -1,4 +1,4 @@
-FROM maven:3.3.9-jdk-8-alpine AS build-env
+FROM maven:3.9.9-amazoncorretto-21-al2023 AS build-env
 WORKDIR /usr/local/kinesis_scaling
 
 COPY pom.xml .
@@ -7,7 +7,7 @@ COPY . .
 
 RUN  mvn clean package assembly:assembly
 
-FROM openjdk:8-jre-alpine
+FROM amazoncorretto:21-al2023-headless
 WORKDIR /usr/local/kinesis_scaling
 COPY --from=build-env /usr/local/kinesis_scaling/target/KinesisScalingUtils-.9.8.8-complete.jar ./KinesisScalingUtils-.9.8.8-complete.jar
 COPY ./conf/configuration.json ./conf/
